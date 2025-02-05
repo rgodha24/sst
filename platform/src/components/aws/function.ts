@@ -2146,10 +2146,7 @@ export class Function extends Component implements Link.Linkable {
               memorySize: memory.apply((memory) => toMBs(memory)),
               ephemeralStorage: { size: storage.apply((v) => toMBs(v)) },
               environment: {
-                variables: {
-                  ...environment,
-                  AWS_LAMBDA_FUNCTION_MEMORY_SIZE: memory,
-                },
+                variables: environment,
               },
               architectures: [architecture],
               loggingConfig: logging && {
