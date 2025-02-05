@@ -281,8 +281,8 @@ export interface FunctionArgs {
    * Currently supports Node.js and Golang functions.
    * :::
    *
-   * Currently supports **Node.js** and **Golang** functions. Python is community supported
-   * and is currently a work in progress. Other runtimes are on the roadmap.
+   * Currently supports **Node.js** and **Golang** functions. Python and Rust are community supported
+   * and currently a work in progress. Other runtimes are on the roadmap.
    *
    * @default `"nodejs20.x"`
    *
@@ -298,6 +298,7 @@ export interface FunctionArgs {
     | "nodejs20.x"
     | "nodejs22.x"
     | "go"
+    | "rust"
     | "provided.al2023"
     | "python3.9"
     | "python3.10"
@@ -332,6 +333,7 @@ export interface FunctionArgs {
    *
    * - For Node.js this is in the format `{path}/{file}.{method}`.
    * - For Golang this is `{path}`.
+   * - For Rust, this is `{path}.{bin}`, where bin is optional.
    *
    * @example
    *
@@ -2144,7 +2146,10 @@ export class Function extends Component implements Link.Linkable {
               memorySize: memory.apply((memory) => toMBs(memory)),
               ephemeralStorage: { size: storage.apply((v) => toMBs(v)) },
               environment: {
-                variables: environment,
+                variables: {
+                  ...environment,
+                  AWS_LAMBDA_FUNCTION_MEMORY_SIZE: memory,
+                },
               },
               architectures: [architecture],
               loggingConfig: logging && {
@@ -2165,23 +2170,23 @@ export class Function extends Component implements Link.Linkable {
               reservedConcurrentExecutions: concurrency?.reserved,
               ...(isContainer
                 ? {
-                  packageType: "Image",
-                  imageUri: imageAsset!.ref.apply(
-                    (ref) => ref?.replace(":latest", ""),
-                  ),
-                  imageConfig: {
-                    commands: [handler],
-                  },
-                }
+                    packageType: "Image",
+                    imageUri: imageAsset!.ref.apply(
+                      (ref) => ref?.replace(":latest", ""),
+                    ),
+                    imageConfig: {
+                      commands: [handler],
+                    },
+                  }
                 : {
-                  packageType: "Zip",
-                  s3Bucket: zipAsset!.bucket,
-                  s3Key: zipAsset!.key,
-                  handler: unsecret(handler),
-                  runtime: runtime.apply((v) =>
-                    v === "go" ? "provided.al2023" : v,
-                  ),
-                }),
+                    packageType: "Zip",
+                    s3Bucket: zipAsset!.bucket,
+                    s3Key: zipAsset!.key,
+                    handler: unsecret(handler),
+                    runtime: runtime.apply((v) =>
+                      v === "go" || v === "rust" ? "provided.al2023" : v,
+                    ),
+                  }),
             },
             { parent },
           );
