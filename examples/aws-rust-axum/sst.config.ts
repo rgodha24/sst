@@ -10,11 +10,13 @@ export default $config({
     };
   },
   async run() {
-    const lambda = new sst.aws.Function("rust", {
+    const bucket = new sst.aws.Bucket("Bucket");
+    const lambda = new sst.aws.Function("RustFunction", {
       runtime: "rust",
       handler: "./",
       url: true,
       architecture: "arm64",
+      link: [bucket],
     });
 
     return { url: lambda.url };
