@@ -1189,7 +1189,7 @@ export interface FunctionArgs {
  *
  * #### Supported runtimes
  *
- * Currently supports **Node.js** and **Golang** functions. Python is community supported and is
+ * Currently supports **Node.js**, **Golang**, and **Rust** functions. Python is community supported and is
  * currently a work in progress. Other runtimes are on the roadmap.
  *
  * @example
@@ -1214,6 +1214,16 @@ export interface FunctionArgs {
  *   new sst.aws.Function("MyFunction", {
  *     runtime: "go",
  *     handler: "./src"
+ *   });
+ *   ```
+ *   </TabItem>
+ *   <TabItem label="Rust">
+ *   Pass in the directory where your Cargo.toml lives.
+ *
+ *   ```ts title="sst.config.ts"
+ *   new sst.aws.Function("MyFunction", {
+ *     runtime: "runtime",
+ *     handler: "./crates/api/"
  *   });
  *   ```
  *   </TabItem>
@@ -1263,6 +1273,18 @@ export interface FunctionArgs {
  *   )
  *
  *   resource.Get("MyBucket", "name")
+ *   ```
+ *   </TabItem>
+ *   <TabItem label="Rust">
+ *   ```rust title="src/main.rs"
+ *   use sst_sdk::Resource;
+ *   #[derive(serde::Deserialize, Debug)]
+ *   struct Bucket {
+ *      name: String,
+ *   }
+ *
+ *   let resource = Resource::init().unwrap();
+ *   let Bucket { name } = resource.get("Bucket").unwrap();
  *   ```
  *   </TabItem>
  * </Tabs>
