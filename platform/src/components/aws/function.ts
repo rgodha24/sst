@@ -281,7 +281,7 @@ export interface FunctionArgs {
    * Currently supports Node.js and Golang functions.
    * :::
    *
-   * Currently supports **Node.js** and **Golang** functions. Python and Rust are community supported
+   * Currently supports **Node.js**, **Golang**, and **Rust** functions. Python is community supported
    * and currently a work in progress. Other runtimes are on the roadmap.
    *
    * @default `"nodejs20.x"`
