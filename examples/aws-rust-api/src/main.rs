@@ -1,33 +1,14 @@
-use std::{env::set_var, sync::Arc, time::Duration};
+use std::{env::set_var, time::Duration};
 
 use aws_sdk_s3::presigning::PresigningConfig;
-use axum::{extract::State, routing::get, Router};
-use lambda_http::{run, service_fn, tracing, Body, Error, Request, RequestExt, Response};
+use axum::{routing::get, Router};
+use lambda_http::{run, tracing, Error};
 use serde::Deserialize;
 use sst_sdk::Resource;
 
 #[derive(Deserialize, Debug)]
 struct Bucket {
     name: String,
-}
-
-async fn function_handler(event: Request) -> Result<Response<Body>, Error> {
-    let resource = Resource::init().unwrap();
-    let Bucket { name } = resource.get("Bucket").unwrap();
-    println!("bucket name {name}");
-
-    let who = event
-        .query_string_parameters_ref()
-        .and_then(|params| params.first("name"))
-        .unwrap_or("world");
-    let message = format!("Hello {who}, this is an AWS Lambda HTTP request");
-
-    let resp = Response::builder()
-        .status(200)
-        .header("content-type", "text/html")
-        .body(message.into())
-        .map_err(Box::new)?;
-    Ok(resp)
 }
 
 async fn presigned_url() -> String {

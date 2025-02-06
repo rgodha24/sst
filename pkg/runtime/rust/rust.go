@@ -88,7 +88,6 @@ func (r *Runtime) Build(ctx context.Context, input *runtime.BuildInput) (*runtim
 
 	// root of project
 	root := filepath.Dir(cargotomlpath)
-	bin := filepath.Ext(input.Handler)
 
 	args := []string{}
 	env := os.Environ()
@@ -100,9 +99,6 @@ func (r *Runtime) Build(ctx context.Context, input *runtime.BuildInput) (*runtim
 		if properties.Architecture == "arm64" {
 			args = append(args, "--arm64")
 		}
-	}
-	if bin != "" {
-		args = append(args, "--bin", bin)
 	}
 
 	cmd := process.Command("cargo", args...)
@@ -116,21 +112,19 @@ func (r *Runtime) Build(ctx context.Context, input *runtime.BuildInput) (*runtim
 		}, nil
 	}
 
-	if bin == "" {
-		// get the default output of the crate
-		var cargotoml CargoToml
-		_, err := toml.DecodeFile(cargotomlpath, &cargotoml)
-		if err != nil {
-			return nil, err
-		}
-
-		bin = cargotoml.Package.Name
+	// get the default output of the crate
+	var cargotoml CargoToml
+	_, err = toml.DecodeFile(cargotomlpath, &cargotoml)
+	if err != nil {
+		return nil, err
 	}
+
+	name := cargotoml.Package.Name
 	binary := ""
 	if input.Dev {
-		binary = filepath.Join(root, "target", "debug", bin)
+		binary = filepath.Join(root, "target", "debug", name)
 	} else {
-		binary = filepath.Join(root, "target", "lambda", bin, "bootstrap")
+		binary = filepath.Join(root, "target", "lambda", name, "bootstrap")
 	}
 	out := filepath.Join(input.Out(), "bootstrap")
 
@@ -188,6 +182,7 @@ func (r *Runtime) Run(ctx context.Context, input *runtime.RunInput) (runtime.Wor
 }
 
 func (r *Runtime) ShouldRebuild(functionID string, file string) bool {
+	// copied from go
 	if !strings.HasSuffix(file, ".rs") {
 		return false
 	}

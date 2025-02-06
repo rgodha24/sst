@@ -332,8 +332,7 @@ export interface FunctionArgs {
    * Path to the handler for the function.
    *
    * - For Node.js this is in the format `{path}/{file}.{method}`.
-   * - For Golang this is `{path}`.
-   * - For Rust, this is `{path}.{bin}`, where bin is optional.
+   * - For Golang and Rust this is `{path}`.
    *
    * @example
    *

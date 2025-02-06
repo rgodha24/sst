@@ -66,7 +66,7 @@ impl Resource {
         Ok(serde_json::from_value(value.clone())?)
     }
 
-    pub fn into_innter(self) -> HashMap<String, Value> {
+    pub fn into_inner(self) -> HashMap<String, Value> {
         self.resources
     }
 }
