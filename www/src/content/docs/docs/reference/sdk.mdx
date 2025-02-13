@@ -164,7 +164,8 @@ const openai = new sst.Secret("OpenaiSecret");
 
 new sst.aws.Function("MyFunction", {
   handler: "./",
-  link: [bucket, openai]
+  link: [bucket, openai],
+  runtime: "rust"
 });
 ```
 
