@@ -26,6 +26,7 @@ import (
 	"github.com/sst/sst/v3/pkg/project/provider"
 	"github.com/sst/sst/v3/pkg/telemetry"
 	"github.com/sst/sst/v3/pkg/types"
+	"golang.org/x/exp/slices"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -200,13 +201,14 @@ func (p *Project) RunNext(ctx context.Context, input *StackInput) error {
 		return nil
 	}
 
-	var meta = map[string]interface{}{}
+	var meta = js.Metafile{}
 	err = json.Unmarshal([]byte(buildResult.Metafile), &meta)
 	if err != nil {
 		return err
 	}
 	files := []string{}
-	for key := range meta["inputs"].(map[string]interface{}) {
+
+	for key := range meta.Inputs {
 		absPath, err := filepath.Abs(key)
 		if err != nil {
 			continue
@@ -289,6 +291,11 @@ func (p *Project) RunNext(ctx context.Context, input *StackInput) error {
 			for key, value := range opts.(map[string]interface{}) {
 				switch v := value.(type) {
 				case map[string]interface{}:
+					bytes, err := json.Marshal(v)
+					if err != nil {
+						return err
+					}
+					args = append(args, "--config", fmt.Sprintf("%v:%v=%v", provider, key, string(bytes)))
 				case []interface{}:
 					bytes, err := json.Marshal(v)
 					if err != nil {
@@ -312,6 +319,22 @@ func (p *Project) RunNext(ctx context.Context, input *StackInput) error {
 	case "remove":
 		args = append([]string{"destroy", "--yes", "-f"}, args...)
 	}
+
+	if input.Target != nil {
+		for _, item := range input.Target {
+			index := slices.IndexFunc(completed.Resources, func(res apitype.ResourceV3) bool {
+				return res.URN.Name() == item
+			})
+			if index == -1 {
+				return fmt.Errorf("Target not found: %v", item)
+			}
+			args = append(args, "--target", string(completed.Resources[index].URN))
+		}
+		if len(input.Target) > 0 {
+			args = append(args, "--target-dependents")
+		}
+	}
+
 	cmd := process.Command(filepath.Join(pulumiPath, "bin/pulumi"), args...)
 	process.Detach(cmd)
 	cmd.Env = env
@@ -403,10 +426,10 @@ loop:
 			continue
 		}
 
-		if event.DiagnosticEvent != nil &&
-			event.DiagnosticEvent.Severity == "error" &&
-			!strings.HasPrefix(event.DiagnosticEvent.Message, "update failed") &&
-			!strings.Contains(event.DiagnosticEvent.Message, "failed to register new resource") {
+		if event.DiagnosticEvent != nil && event.DiagnosticEvent.Severity == "error" {
+			if strings.HasPrefix(event.DiagnosticEvent.Message, "update failed") || strings.Contains(event.DiagnosticEvent.Message, "failed to register new resource") {
+				continue
+			}
 
 			// check if the error is a common error
 			help := []string{}
@@ -424,6 +447,10 @@ loop:
 						break
 					}
 				}
+			}
+
+			if exists {
+				continue
 			}
 
 			if !exists {

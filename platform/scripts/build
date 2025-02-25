@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 ORIGINAL_DIR=$(pwd)
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 echo "moving to $SCRIPT_DIR"
@@ -9,7 +11,7 @@ bun build ./functions/cf-static-site-router-worker/index.ts --target=node --outd
 bun build ./functions/cf-ssr-site-router-worker/index.ts --target=node --outdir ./dist/cf-ssr-site-router-worker/
 bun build ./functions/nodejs-runtime/index.ts --target=node --outdir ./dist/nodejs-runtime/
 bun build ./functions/nodejs-runtime/loop.ts --target=node --outdir ./dist/nodejs-runtime/
-GOARCH=amd64 GOOS=linux go build -o ./dist/bridge/bootstrap ./functions/bridge
+GOARCH=amd64 GOOS=linux go build -trimpath -mod=readonly -ldflags="-buildid=" -o ./dist/bridge/bootstrap ./functions/bridge 
 node ./scripts/build.mjs
 
 mkdir -p ./dist/python-runtime/
@@ -20,11 +22,8 @@ cp ./functions/docker/python.Dockerfile ./dist/dockerfiles/python.Dockerfile
 
 cd ./support/bridge-task
 timestamp=$(date +%Y%m%d%H%M%S)
-docker build -t ghcr.io/sst/sst/bridge-task:$timestamp -t ghcr.io/sst/sst/bridge-task:latest .
-
-if [ "$DOCKER_PUSH" = "true" ]; then
-  docker push ghcr.io/sst/sst/bridge-task -a
-fi
+docker buildx create --name multi --driver docker-container --use
+docker buildx build --platform linux/amd64,linux/arm64 -t ghcr.io/sst/sst/bridge-task:$timestamp -t ghcr.io/sst/sst/bridge-task:latest $([ "$DOCKER_PUSH" = "true" ] && echo "--push") .
 
 
 cd $ORIGINAL_DIR

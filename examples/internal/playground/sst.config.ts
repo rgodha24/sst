@@ -90,6 +90,7 @@ export default $config({
         link: [queue],
         url: true,
       });
+      ret.queue = queue.url;
 
       return queue;
     }
@@ -227,7 +228,8 @@ export default $config({
     }
 
     function addService() {
-      return cluster.addService("MyService", {
+      return new sst.aws.Service("MyService", {
+        cluster,
         loadBalancer: {
           ports: [
             { listen: "80/http" },
@@ -261,7 +263,8 @@ export default $config({
     }
 
     function addTask() {
-      const task = cluster.addTask("MyTask", {
+      const task = new sst.aws.Task("MyTask", {
+        cluster,
         image: {
           context: "images/task",
         },
