@@ -280,8 +280,8 @@ export interface FunctionArgs {
    * Currently supports Node.js and Golang functions.
    * :::
    *
-   * Currently supports **Node.js**, **Golang**, and **Rust** functions. Python is community supported
-   * and currently a work in progress. Other runtimes are on the roadmap.
+   * Currently supports **Node.js**, and **Golang** functions. Python and Rust are community
+   * supported and currently are a work in progress. Other runtimes are on the roadmap.
    *
    * @default `"nodejs20.x"`
    *
@@ -331,7 +331,8 @@ export interface FunctionArgs {
    * Path to the handler for the function.
    *
    * - For Node.js this is in the format `{path}/{file}.{method}`.
-   * - For Golang and Rust this is `{path}`.
+   * - For Golang this is `{path}` to the Go module.
+   * - For Rust this is `{path}` to the Rust crate.
    *
    * @example
    *
@@ -363,12 +364,25 @@ export interface FunctionArgs {
    *
    * ```js
    * {
-   *   handler: "packages/functions/src"
+   *   handler: "packages/functions/go/some_module"
    * }
    * ```
    *
-   * Where `packages/functions/src` is the path to your Go app. And the path is relative to the
-   * root your repo or the `sst.config.ts`.
+   * Where `packages/functions/go/some_module` is the path to the Go module. This
+   * includes the name of the module in your `go.mod`. So in this case your `go.mod`
+   * might be in `packages/functions/go` and `some_module` is the name of the
+   * module.
+   *
+   * For Rust, it might look like this.
+   *
+   * ```js
+   * {
+   *   handler: "crates/api"
+   * }
+   * ```
+   *
+   * Where `crates/api` is the path to the Rust crate. This means there is a
+   * `Cargo.toml` file in `crates/api`, and the main() function handles the lambda.
    */
   handler: Input<string>;
   /**

@@ -2,16 +2,35 @@
 /* tslint:disable */
 /* eslint-disable */
 /* deno-fmt-ignore-file */
-import "sst"
-export {}
+
 declare module "sst" {
   export interface Resource {
+    "MyAstro4Site": {
+      "type": "sst.aws.Astro"
+      "url": string
+    }
+    "MyAuth": {
+      "type": "sst.aws.Auth"
+      "url": string
+    }
     "MyBucket": {
       "name": string
       "type": "sst.aws.Bucket"
+    }
+    "MyReactRouter7CsrSite": {
+      "type": "sst.aws.React"
+      "url": string
+    }
+    "MyReactRouter7SsrSite": {
+      "type": "sst.aws.React"
+      "url": string
     }
     "MyVpc": {
       "type": "sst.aws.Vpc"
     }
   }
 }
+/// <reference path="sst-env.d.ts" />
+
+import "sst"
+export {}
