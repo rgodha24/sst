@@ -5,7 +5,16 @@
 
 declare module "sst" {
   export interface Resource {
+    "MyApp": {
+      "name": string
+      "type": "sst.aws.Function"
+      "url": string
+    }
     "MyAstro4Site": {
+      "type": "sst.aws.Astro"
+      "url": string
+    }
+    "MyAstro5Site": {
       "type": "sst.aws.Astro"
       "url": string
     }
@@ -17,12 +26,20 @@ declare module "sst" {
       "name": string
       "type": "sst.aws.Bucket"
     }
-    "MyReactRouter7CsrSite": {
+    "MyReactRouter7Site": {
       "type": "sst.aws.React"
       "url": string
     }
-    "MyReactRouter7SsrSite": {
-      "type": "sst.aws.React"
+    "MyRouter": {
+      "type": "sst.aws.Router"
+      "url": string
+    }
+    "MyRouter2": {
+      "type": "sst.aws.Router"
+      "url": string
+    }
+    "MyTanstackSite": {
+      "type": "sst.aws.TanstackStart"
       "url": string
     }
     "MyVpc": {

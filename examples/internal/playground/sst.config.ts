@@ -14,16 +14,18 @@ export default $config({
     const vpc = addVpc();
     const bucket = addBucket();
     const auth = addAuth();
+    const oc = addOpenControl();
     addAstro4Site();
-    addReactRouter7SsrSite();
-    addReactRouter7CsrSite();
+    addAstro5Site();
+    addReactRouter7Site();
+    addTanstackSite();
     //const queue = addQueue();
     //const efs = addEfs();
     //const email = addEmail();
     //const apiv1 = addApiV1();
     //const apiv2 = addApiV2();
     //const apiws = addApiWebsocket();
-    //const router = addRouter();
+    const router = addRouter();
     //const app = addFunction();
     //const cluster = addCluster();
     //const service = addService();
@@ -84,6 +86,23 @@ export default $config({
         authorizer: "functions/auth/index.handler",
       });
       return auth;
+    }
+
+    function addOpenControl() {
+      const oc = new sst.aws.OpenControl("MyOpenControl", {
+        server: {
+          handler: "functions/open-control/index.handler",
+          link: [bucket],
+          transform: {
+            role: (args) => {
+              args.managedPolicyArns = $output(args.managedPolicyArns).apply(
+                (v) => [...(v ?? []), "arn:aws:iam::aws:policy/ReadOnlyAccess"]
+              );
+            },
+          },
+        },
+      });
+      return oc;
     }
 
     function addQueue() {
@@ -391,18 +410,28 @@ export default $config({
       });
     }
 
-    function addReactRouter7SsrSite() {
-      new sst.aws.React("MyReactRouter7SsrSite", {
-        domain: "reactrouter7ssr.playground.sst.sh",
-        path: "sites/react-router-7-ssr",
+    function addAstro5Site() {
+      new sst.aws.Astro("MyAstro5Site", {
+        domain: "astro5.playground.sst.sh",
+        path: "sites/astro5",
+        //path: "sites/astro5-static",
         link: [bucket],
       });
     }
 
-    function addReactRouter7CsrSite() {
-      new sst.aws.React("MyReactRouter7CsrSite", {
-        domain: "reactrouter7csr.playground.sst.sh",
-        path: "sites/react-router-7-csr",
+    function addReactRouter7Site() {
+      new sst.aws.React("MyReactRouter7Site", {
+        domain: "reactrouter7.playground.sst.sh",
+        path: "sites/react-router-7-ssr",
+        //path: "sites/react-router-7-csr",
+        link: [bucket],
+      });
+    }
+
+    function addTanstackSite() {
+      new sst.aws.TanstackStart("MyTanstackSite", {
+        domain: "tanstack.playground.sst.sh",
+        path: "sites/tanstack-start",
         link: [bucket],
       });
     }
